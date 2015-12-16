@@ -9,39 +9,103 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
+#include <math.h>
+#include <sys/time.h>
 #include "mpi.h"
 
-int main(int argc, const char * argv[]) {
-    int iproc, nproc, i;
-    char host[255], message[55];
-    MPI_Status status;
+#define VECSIZE 8
+#define ITERATIONS 10000
+
+typedef struct {
+    double val;
+    int rank;
+} element;
+
+double When()
+{
+    struct timeval tp;
+    gettimeofday(&tp, NULL);
+    return ((double) tp.tv_sec + (double) tp.tv_usec * 1e-6);
+}
+//
+//// Reduce values to one node
+//float ReduceSum(int numdim, int rank, float value)
+//{
+//    int notparticipating = 0;
+//    int bitmask = 1;
+//    float sum = value;
+//    float newvalue;
+//    for(int i = 0; i < numdim; i++) {
+//        if ((rank & notparticipating) == 0) {
+//            if ((rank & bitmask) != 0) {
+//                int msg_dest = rank ^ bitmask;
+//                send(sum, msg_dest);
+//            } else {
+//                int msg_src = rank ^ bitmask;
+//                recv(&newvalue, msg_src);
+//                sum += newvalue;
+//            }
+//        }
+//        notparticipating = notparticipating ^ bitmask;
+//        bitmask <<=1;
+//    }
+//    return(sum);
+//}
+
+void my_MPI_Reduce_Max(element vector[VECSIZE], int size, int numDim, int myRank) {
+    
+}
+
+void my_MPI_Broadcast_Max(element vector[VECSIZE], int size, int numDim, int myRank) {
+    
+}
+
+int main(int argc, char *argv[])
+{
+    int nproc, i, iter;
+    int myRank, root = 0;
     
     MPI_Init(&argc, &argv);
     MPI_Comm_size(MPI_COMM_WORLD, &nproc);
-    MPI_Comm_rank(MPI_COMM_WORLD, &iproc);
+    MPI_Comm_rank(MPI_COMM_WORLD, &myRank);
     
-    gethostname(host, 253);
-    printf("I am proc %d of %d running on %s\n", iproc, nproc, host);
+    int numDim = (int)(log2(nproc));
+    element vector[VECSIZE];
     
-    printf("Sending messages\n");
-    sprintf(message, "%d: Hello\n", iproc);
+    // Start time here
+    srand(myRank + 5);
+    double start = When();
     
-    for (i = 0; i < nproc; i++) {
-        if (i != iproc) {
-            MPI_Send(message, 35, MPI_CHAR, i, 0, MPI_COMM_WORLD);
+    for (iter = 0; iter < ITERATIONS; iter++) {
+        for (i = 0; i < VECSIZE; i++) {
+            vector[i].val = rand();
+            vector[i].rank = myRank;
+//             printf("init proc %d [%d]=%f\n", myRank, i, ain[i]);
         }
-    }
-    
-    printf("Receiving messages\n");
-    
-    for (i = 0; i < nproc; i++) {
-        if (i != iproc) {
-            MPI_Recv(message, 35, MPI_CHAR, i, 0, MPI_COMM_WORLD, &status);
-            printf("%d: %s", iproc, message);
+        
+        my_MPI_Reduce_Max(vector, VECSIZE, numDim, myRank);
+        
+        // At this point, the answer resides on process root
+        if (myRank == root) {
+            for (i = 0; i < VECSIZE; i++) {
+                printf("------------ root vector[%d] = %f from %d\n", i, vector[i].val, vector[i].rank);
+            }
         }
+        
+        // Now broadcast this max vector to everyone else.
+        my_MPI_Broadcast_Max(vector, VECSIZE, numDim, myRank);
+        
+         for (i = 0; i < VECSIZE; i++) {
+             printf("final proc %d [%d]=%f from %d\n", myRank, i, vector[i].val, vector[i].rank);
+         }
     }
     
     MPI_Finalize();
+    
+    double end = When();
+    if (myRank == root) {
+        printf("Time %f\n", end - start);
+    }
     
     return 0;
 }
