@@ -53,7 +53,22 @@ double When()
 //}
 
 void my_MPI_Reduce_Max(element vector[VECSIZE], int size, int numDim, int myRank) {
+    int notParticipating = 0;
+    int bitmask = 1;
+    float sum = // value;
+    float newValue;
     
+    for (int curDim = 0; curDim < numDim; curDim++) {
+        if ((myRank & notParticipating) == 0) {
+            if ((rank & bitmask) != 0) {
+                int msgDestination = rank ^ bitmask;
+                MPI_Send(<#const void *buf#>, <#int count#>, <#MPI_Datatype datatype#>, <#int dest#>, <#int tag#>, <#MPI_Comm comm#>)
+            } else {
+                int msgSource = rank ^ bitmask;
+                MPI_Recv(<#void *buf#>, <#int count#>, <#MPI_Datatype datatype#>, <#int source#>, <#int tag#>, <#MPI_Comm comm#>, <#MPI_Status *status#>)
+            }
+        }
+    }
 }
 
 void my_MPI_Broadcast_Max(element vector[VECSIZE], int size, int numDim, int myRank) {
