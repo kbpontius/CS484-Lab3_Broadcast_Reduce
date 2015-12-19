@@ -27,7 +27,7 @@ double When()
     gettimeofday(&tp, NULL);
     return ((double) tp.tv_sec + (double) tp.tv_usec * 1e-6);
 }
-//
+
 //// Reduce values to one node
 //float ReduceSum(int numdim, int rank, float value)
 //{
@@ -53,22 +53,22 @@ double When()
 //}
 
 void my_MPI_Reduce_Max(element vector[VECSIZE], int size, int numDim, int myRank) {
-    int notParticipating = 0;
-    int bitmask = 1;
-    float sum = // value;
-    float newValue;
-    
-    for (int curDim = 0; curDim < numDim; curDim++) {
-        if ((myRank & notParticipating) == 0) {
-            if ((rank & bitmask) != 0) {
-                int msgDestination = rank ^ bitmask;
-                MPI_Send(<#const void *buf#>, <#int count#>, <#MPI_Datatype datatype#>, <#int dest#>, <#int tag#>, <#MPI_Comm comm#>)
-            } else {
-                int msgSource = rank ^ bitmask;
-                MPI_Recv(<#void *buf#>, <#int count#>, <#MPI_Datatype datatype#>, <#int source#>, <#int tag#>, <#MPI_Comm comm#>, <#MPI_Status *status#>)
-            }
-        }
-    }
+//    int notParticipating = 0;
+//    int bitmask = 1;
+//    float sum = // value;
+//    float newValue;
+//    
+//    for (int curDim = 0; curDim < numDim; curDim++) {
+//        if ((myRank & notParticipating) == 0) {
+//            if ((rank & bitmask) != 0) {
+//                int msgDestination = rank ^ bitmask;
+//                MPI_Send(<#const void *buf#>, <#int count#>, <#MPI_Datatype datatype#>, <#int dest#>, <#int tag#>, <#MPI_Comm comm#>)
+//            } else {
+//                int msgSource = rank ^ bitmask;
+//                MPI_Recv(<#void *buf#>, <#int count#>, <#MPI_Datatype datatype#>, <#int source#>, <#int tag#>, <#MPI_Comm comm#>, <#MPI_Status *status#>)
+//            }
+//        }
+//    }
 }
 
 void my_MPI_Broadcast_Max(element vector[VECSIZE], int size, int numDim, int myRank) {
@@ -79,6 +79,7 @@ int main(int argc, char *argv[])
 {
     int nproc, i, iter;
     int myRank, root = 0;
+    char hostName[255];
     
     MPI_Init(&argc, &argv);
     MPI_Comm_size(MPI_COMM_WORLD, &nproc);
@@ -86,6 +87,8 @@ int main(int argc, char *argv[])
     
     int numDim = (int)(log2(nproc));
     element vector[VECSIZE];
+    
+    gethostname(hostName, 253);
     
     // Start time here
     srand(myRank + 5);
@@ -95,7 +98,7 @@ int main(int argc, char *argv[])
         for (i = 0; i < VECSIZE; i++) {
             vector[i].val = rand();
             vector[i].rank = myRank;
-//             printf("init proc %d [%d]=%f\n", myRank, i, ain[i]);
+            printf("%s: init proc %d [%d]=%f\n", hostName, myRank, i, vector[i].val);
         }
         
         my_MPI_Reduce_Max(vector, VECSIZE, numDim, myRank);
