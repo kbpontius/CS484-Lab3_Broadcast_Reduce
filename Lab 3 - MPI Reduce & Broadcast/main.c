@@ -30,30 +30,6 @@ double When()
     return ((double) tp.tv_sec + (double) tp.tv_usec * 1e-6);
 }
 
-//// Reduce values to one node
-//float ReduceSum(int numdim, int rank, float value)
-//{
-//    int notparticipating = 0;
-//    int bitmask = 1;
-//    float sum = value;
-//    float newvalue;
-//    for(int i = 0; i < numdim; i++) {
-//        if ((rank & notparticipating) == 0) {
-//            if ((rank & bitmask) != 0) {
-//                int msg_dest = rank ^ bitmask;
-//                send(sum, msg_dest);
-//            } else {
-//                int msg_src = rank ^ bitmask;
-//                recv(&newvalue, msg_src);
-//                sum += newvalue;
-//            }
-//        }
-//        notparticipating = notparticipating ^ bitmask;
-//        bitmask <<=1;
-//    }
-//    return(sum);
-//}
-
 void getMaxVectorValues(double myVector[VECSIZE], double receivedVector[VECSIZE]) {
     int i;
     
@@ -91,8 +67,26 @@ void my_MPI_Reduce_Max(double vector[VECSIZE], int size, int numDim, int rank, M
     }
 }
 
-void my_MPI_Broadcast_Max(double vector[VECSIZE], int size, int numDim, int myRank) {
+void my_MPI_Broadcast_Max(double vector[VECSIZE], int size, int numDim, int rank, MPI_Status status) {
+    int notParticipating = pow(2, numDim - 1) - 1;
+    int bitmask = pow(2, numDim - 1);
+    int curDim;
     
+    for(curDim = 0; curDim < numDim; curDim++) {
+        if ((rank & notParticipating) == 0) {
+            if ((rank & bitmask) == 0) {
+                int msgDestination = rank ^ bitmask;
+                MPI_Send(vector, VECSIZE, MPI_DOUBLE, msgDestination, 0, MPI_COMM_WORLD);
+            } else {
+                int msgSource = rank ^ bitmask;
+                double receivedArray[VECSIZE];
+                MPI_Recv(receivedArray, VECSIZE, MPI_DOUBLE, msgSource, 0, MPI_COMM_WORLD, &status);
+            }
+        }
+        
+        notParticipating >>= 1;
+        bitmask >>=1;
+    }
 }
 
 int main(int argc, char *argv[])
@@ -118,7 +112,6 @@ int main(int argc, char *argv[])
     for (iter = 0; iter < ITERATIONS; iter++) {
         for (i = 0; i < VECSIZE; i++) {
             vector[i] = rand();
-//            vector[i].rank = myRank;
             printf("%s: init proc %d [%d]=%f\n", hostName, myRank, i, vector[i]);
         }
         
@@ -132,7 +125,7 @@ int main(int argc, char *argv[])
         }
         
         // Now broadcast this max vector to everyone else.
-//        my_MPI_Broadcast_Max(vector, VECSIZE, numDim, myRank, status);
+        my_MPI_Broadcast_Max(vector, VECSIZE, numDim, myRank, status);
         
          for (i = 0; i < VECSIZE; i++) {
              printf("final proc %d [%d]=%f\n", myRank, i, vector[i]);
