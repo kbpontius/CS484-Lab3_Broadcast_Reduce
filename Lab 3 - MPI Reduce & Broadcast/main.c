@@ -58,11 +58,9 @@ void getMaxVectorValues(double myVector[VECSIZE], double receivedVector[VECSIZE]
     int i;
     
     for (i = 0; i < VECSIZE; i++) {
-        printf("COMPARING %f TO %f\n", myVector[i], receivedVector[i]);
-        
         if (myVector[i] < receivedVector[i]) {
+            printf("FOUND LARGER VALUE: %f > %f\n", receivedVector[i], myVector[i]);
             myVector[i] = receivedVector[i];
-            printf("FOUND LARGER VALUE\n");
         }
     }
 }
