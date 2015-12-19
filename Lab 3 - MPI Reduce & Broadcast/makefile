@@ -10,7 +10,7 @@ CFLAGS			= -O -I$(MPI_INCL)
 LFLAGS     		= -L$(MPI_LIB) -lm -lmpich
 
 $(TARGET): $(SRC)
-	$(CC) $(CFLAGS) $(SRC) -o $(TARGET)
+	$(CC) $(CFLAGS) $(SRC) -o $(TARGET) $(LFLAGS)
 
 run: $(TARGET)
 	./$(TARGET) -p4pg $(TARGET).cfg
