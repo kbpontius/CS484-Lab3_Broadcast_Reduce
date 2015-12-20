@@ -13,7 +13,7 @@
 #include <sys/time.h>
 #include "mpi.h"
 
-#define VECSIZE 8
+#define VECSIZE 30000
 #define ITERATIONS 1
 
 // I decided to just use an int array, then reduce that. It saved extra time
@@ -35,7 +35,7 @@ void getMaxVectorValues(double myVector[VECSIZE], double receivedVector[VECSIZE]
     
     for (i = 0; i < VECSIZE; i++) {
         if (myVector[i] < receivedVector[i]) {
-            printf("FOUND LARGER VALUE: %f > %f\n", receivedVector[i], myVector[i]);
+//            printf("FOUND LARGER VALUE: %f > %f\n", receivedVector[i], myVector[i]);
             myVector[i] = receivedVector[i];
         }
     }
@@ -51,12 +51,12 @@ void my_MPI_Reduce_Max(double vector[VECSIZE], int size, int numDim, int rank, M
             if ((rank & bitmask) != 0) {
                 int msgDestination = rank ^ bitmask;
                 MPI_Send(vector, VECSIZE, MPI_DOUBLE, msgDestination, 0, MPI_COMM_WORLD);
-                printf("\nHOSTNAME SENT: --------%s-------- || RANK: %i || DESTINATION: %i\n", hostName, rank, msgDestination);
+//                printf("\nHOSTNAME SENT: --------%s-------- || RANK: %i || DESTINATION: %i\n", hostName, rank, msgDestination);
             } else {
                 int msgSource = rank ^ bitmask;
                 double receivedArray[VECSIZE];
                 MPI_Recv(receivedArray, VECSIZE, MPI_DOUBLE, msgSource, 0, MPI_COMM_WORLD, &status);
-                printf("\nHOSTNAME RECEIVED: --------%s-------- || RANK: %i || SOURCE: %i\n", hostName, rank, msgSource);
+//                printf("\nHOSTNAME RECEIVED: --------%s-------- || RANK: %i || SOURCE: %i\n", hostName, rank, msgSource);
                 
                 getMaxVectorValues(vector, receivedArray);
             }
@@ -112,7 +112,7 @@ int main(int argc, char *argv[])
     for (iter = 0; iter < ITERATIONS; iter++) {
         for (i = 0; i < VECSIZE; i++) {
             vector[i] = rand();
-            printf("%s: init proc %d [%d]=%f\n", hostName, myRank, i, vector[i]);
+//            printf("%s: init proc %d [%d]=%f\n", hostName, myRank, i, vector[i]);
         }
         
         my_MPI_Reduce_Max(vector, VECSIZE, numDim, myRank, status, hostName);
@@ -120,7 +120,7 @@ int main(int argc, char *argv[])
         // At this point, the answer resides on process root
         if (myRank == root) {
             for (i = 0; i < VECSIZE; i++) {
-                printf("------------ root vector[%d] = %f from %f\n", i, vector[i], vector[i]);
+//                printf("------------ root vector[%d] = %f from %f\n", i, vector[i], vector[i]);
             }
         }
         
@@ -128,7 +128,7 @@ int main(int argc, char *argv[])
         my_MPI_Broadcast_Max(vector, VECSIZE, numDim, myRank, status);
         
          for (i = 0; i < VECSIZE; i++) {
-             printf("final proc %d [%d]=%f\n", myRank, i, vector[i]);
+//             printf("final proc %d [%d]=%f\n", myRank, i, vector[i]);
          }
     }
     
