@@ -7,6 +7,9 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		270B839F1C211FB700E14504 /* libmpi_cxx.1.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 270B839B1C211F1000E14504 /* libmpi_cxx.1.dylib */; };
+		270B83A01C211FB700E14504 /* libmpi.12.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 270B839C1C211F1000E14504 /* libmpi.12.dylib */; };
+		270B83A41C21359300E14504 /* makefile in Sources */ = {isa = PBXBuildFile; fileRef = 270B83A31C21359300E14504 /* makefile */; };
 		27132F401C21181000930207 /* main.c in Sources */ = {isa = PBXBuildFile; fileRef = 27132F3F1C21181000930207 /* main.c */; };
 		A25C5BD61C251EA90085DA45 /* libmpi_cxx.1.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = A25C5BD41C251EA90085DA45 /* libmpi_cxx.1.dylib */; };
 		A25C5BD71C251EA90085DA45 /* libmpi.12.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = A25C5BD51C251EA90085DA45 /* libmpi.12.dylib */; };
@@ -25,6 +28,10 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		270B83991C211ED500E14504 /* lib */ = {isa = PBXFileReference; lastKnownFileType = folder; name = lib; path = ../../../../../../../../../usr/local/lib; sourceTree = "<group>"; };
+		270B839B1C211F1000E14504 /* libmpi_cxx.1.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libmpi_cxx.1.dylib; path = "../../../../../../../../../usr/local/Cellar/open-mpi/1.10.1/lib/libmpi_cxx.1.dylib"; sourceTree = "<group>"; };
+		270B839C1C211F1000E14504 /* libmpi.12.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libmpi.12.dylib; path = "../../../../../../../../../usr/local/Cellar/open-mpi/1.10.1/lib/libmpi.12.dylib"; sourceTree = "<group>"; };
+		270B83A31C21359300E14504 /* makefile */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.make; name = makefile; path = "Lab 3 - MPI Reduce & Broadcast/makefile"; sourceTree = "<group>"; };
 		27132F3C1C21181000930207 /* Lab 3 - MPI Reduce & Broadcast */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = "Lab 3 - MPI Reduce & Broadcast"; sourceTree = BUILT_PRODUCTS_DIR; };
 		27132F3F1C21181000930207 /* main.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = main.c; sourceTree = "<group>"; };
 		A25C5BD41C251EA90085DA45 /* libmpi_cxx.1.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libmpi_cxx.1.dylib; path = "../../../../usr/local/Cellar/open-mpi/1.10.1_1/lib/libmpi_cxx.1.dylib"; sourceTree = "<group>"; };
@@ -36,8 +43,8 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				A25C5BD61C251EA90085DA45 /* libmpi_cxx.1.dylib in Frameworks */,
-				A25C5BD71C251EA90085DA45 /* libmpi.12.dylib in Frameworks */,
+				270B839F1C211FB700E14504 /* libmpi_cxx.1.dylib in Frameworks */,
+				270B83A01C211FB700E14504 /* libmpi.12.dylib in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -47,10 +54,12 @@
 		27132F331C21181000930207 = {
 			isa = PBXGroup;
 			children = (
-				A25C5BD41C251EA90085DA45 /* libmpi_cxx.1.dylib */,
-				A25C5BD51C251EA90085DA45 /* libmpi.12.dylib */,
+				270B839B1C211F1000E14504 /* libmpi_cxx.1.dylib */,
+				270B839C1C211F1000E14504 /* libmpi.12.dylib */,
+				270B83991C211ED500E14504 /* lib */,
 				27132F3E1C21181000930207 /* Lab 3 - MPI Reduce & Broadcast */,
 				27132F3D1C21181000930207 /* Products */,
+				270B83A31C21359300E14504 /* makefile */,
 			);
 			sourceTree = "<group>";
 		};
@@ -127,6 +136,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				27132F401C21181000930207 /* main.c in Sources */,
+				270B83A41C21359300E14504 /* makefile in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -215,10 +225,7 @@
 		27132F441C21181000930207 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				LIBRARY_SEARCH_PATHS = (
-					/usr/local/lib,
-					"/usr/local/Cellar/open-mpi/1.10.1_1/lib",
-				);
+				LIBRARY_SEARCH_PATHS = /usr/local/lib;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				USER_HEADER_SEARCH_PATHS = /usr/local/include;
 			};
@@ -227,10 +234,7 @@
 		27132F451C21181000930207 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				LIBRARY_SEARCH_PATHS = (
-					/usr/local/lib,
-					"/usr/local/Cellar/open-mpi/1.10.1_1/lib",
-				);
+				LIBRARY_SEARCH_PATHS = /usr/local/lib;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				USER_HEADER_SEARCH_PATHS = /usr/local/include;
 			};
