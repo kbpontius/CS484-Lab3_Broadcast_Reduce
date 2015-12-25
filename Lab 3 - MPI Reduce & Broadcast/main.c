@@ -13,8 +13,8 @@
 #include <sys/time.h>
 #include "mpi.h"
 
-#define VECSIZE 60000
-#define ITERATIONS 1
+#define VECSIZE 1000
+#define ITERATIONS 10
 
 // I decided to just use an int array, then reduce that. It saved extra time
 // in figuring out how to send a struct through MPI.
