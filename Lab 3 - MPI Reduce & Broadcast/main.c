@@ -13,7 +13,7 @@
 #include <sys/time.h>
 #include "mpi.h"
 
-#define VECSIZE 30000
+#define VECSIZE 60000
 #define ITERATIONS 1
 
 // I decided to just use an int array, then reduce that. It saved extra time
@@ -91,7 +91,7 @@ void my_MPI_Broadcast_Max(double vector[VECSIZE], int size, int numDim, int rank
 
 int main(int argc, char *argv[])
 {
-    int nproc, i, iter;
+    int nproc, j, i;
     int myRank, root = 0;
     char hostName[255];
     
@@ -109,27 +109,16 @@ int main(int argc, char *argv[])
     srand(myRank + 5);
     double start = When();
     
-    for (iter = 0; iter < ITERATIONS; iter++) {
-        for (i = 0; i < VECSIZE; i++) {
-            vector[i] = rand();
-//            printf("%s: init proc %d [%d]=%f\n", hostName, myRank, i, vector[i]);
+    for (i = 0; i < ITERATIONS; i++) {
+        for (j = 0; j < VECSIZE; j++) {
+            vector[j] = rand();
         }
         
+        // Reduce the vector the root node using the hypercube.
         my_MPI_Reduce_Max(vector, VECSIZE, numDim, myRank, status, hostName);
-        
-        // At this point, the answer resides on process root
-        if (myRank == root) {
-            for (i = 0; i < VECSIZE; i++) {
-//                printf("------------ root vector[%d] = %f from %f\n", i, vector[i], vector[i]);
-            }
-        }
         
         // Now broadcast this max vector to everyone else.
         my_MPI_Broadcast_Max(vector, VECSIZE, numDim, myRank, status);
-        
-         for (i = 0; i < VECSIZE; i++) {
-//             printf("final proc %d [%d]=%f\n", myRank, i, vector[i]);
-         }
     }
     
     MPI_Finalize();
