@@ -13,8 +13,8 @@
 #include <sys/time.h>
 #include "mpi.h"
 
-#define VECSIZE 10
-#define ITERATIONS 1
+#define VECSIZE 100000
+#define ITERATIONS 100
 
 // I decided to just use an int array, then reduce that. It saved extra time
 // in figuring out how to send a struct through MPI.
@@ -117,38 +117,59 @@ int main(int argc, char *argv[])
     
     gethostname(hostName, 253);
     
-    // Start time here
-    srand(myRank + 5);
-    double start = When();
+    /* EXECUTE VECTOR MAX BCAST & REDUCE */
     
-    for (i = 0; i < ITERATIONS; i++) {
-        for (j = 0; j < VECSIZE; j++) {
-            vector[j] = rand();
-            fprintf(stderr, "%i: vector[%i] = %f\n", myRank, j, vector[j]);
+    srand(myRank + 5);
+    double startMaxVector = When();
+    
+    for (j = 0; j < VECSIZE; j++) {
+        vector[j] = rand();
+        fprintf(stderr, "%i: vector[%i] = %f\n", myRank, j, vector[j]);
+    }
+    
+    // Reduce the vector the root node using the hypercube.
+    my_MPI_Reduce_Max(vector, VECSIZE, numDim, myRank, status, hostName);
+    
+    if (myRank == root) {
+        for (iter = 0; iter < VECSIZE; iter++) {
+            fprintf(stderr, "root vector[%d] = %f\n", iter, vector[iter]);
         }
+    }
+    
+    // Now broadcast this max vector to everyone else.
+    my_MPI_Broadcast_Max(vector, VECSIZE, numDim, myRank, status);
+    
+    for (iter = 0; iter < VECSIZE; iter++) {
+        fprintf(stderr, "final proc %d [%d] = %f\n", myRank, iter, vector[iter]);
+    }
+    
+    double endMaxVector = When();
+    
+    /* MAXIMUM BANDWIDTH CALCULATION */
+    
+    double startBandwidth = 0.0, endBandwidth = 0.0;
+    
+    if (myRank == root || myRank == 1) {
+        startBandwidth = When();
         
-        // Reduce the vector the root node using the hypercube.
-        my_MPI_Reduce_Max(vector, VECSIZE, numDim, myRank, status, hostName);
-        
-        if (myRank == root) {
-            for (iter = 0; iter < VECSIZE; iter++) {
-                fprintf(stderr, "root vector[%d] = %f\n", iter, vector[iter]);
+        for (iter = 0; iter < ITERATIONS; iter++) {
+            if (myRank == root) {
+                MPI_Send(vector, 1, MPI_DOUBLE, 1, 0, MPI_COMM_WORLD);
+            } else if (myRank == 1) {
+                MPI_Recv(vector, 1, MPI_DOUBLE, 0, 0, MPI_COMM_WORLD, &status);
             }
         }
         
-        // Now broadcast this max vector to everyone else.
-        my_MPI_Broadcast_Max(vector, VECSIZE, numDim, myRank, status);
-        
-        for (iter = 0; iter < VECSIZE; iter++) {
-            fprintf(stderr, "final proc %d [%d] = %f\n", myRank, iter, vector[iter]);
-        }
+        endBandwidth = When();
     }
     
     MPI_Finalize();
     
-    double end = When();
+    
     if (myRank == root) {
-        printf("Time %f\n", end - start);
+        double bytesPerSecond = (sizeof(double) * VECSIZE) * ITERATIONS / (endBandwidth - startBandwidth);
+        fprintf(stderr, "Time %f\n", endMaxVector - startMaxVector);
+        fprintf(stderr, "MAX BANDWIDTH: %f bytes/second", bytesPerSecond);
     }
     
     return 0;
