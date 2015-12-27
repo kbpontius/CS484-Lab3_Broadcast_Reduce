@@ -13,8 +13,8 @@
 #include <sys/time.h>
 #include "mpi.h"
 
-#define VECSIZE 1000
-#define ITERATIONS 10
+#define VECSIZE 10
+#define ITERATIONS 1
 
 // I decided to just use an int array, then reduce that. It saved extra time
 // in figuring out how to send a struct through MPI.
@@ -22,6 +22,13 @@ typedef struct {
     double val;
     int rank;
 } element;
+
+void printArray(double vector[VECSIZE]) {
+    int i;
+    for (i = 0; i < VECSIZE; i++) {
+        fprintf(stderr, "\t----> received vector[%i] = %f\n", i, vector[i]);
+    }
+}
 
 double When()
 {
@@ -41,7 +48,7 @@ void getMaxVectorValues(double myVector[VECSIZE], double receivedVector[VECSIZE]
     }
 }
 
-void my_MPI_Reduce_Max(double vector[VECSIZE], int size, int numDim, int rank, MPI_Status status, char hostName[]) {
+void my_MPI_Reduce_Max(double *vector, int size, int numDim, int rank, MPI_Status status, char hostName[]) {
     int notParticipating = 0;
     int bitmask = 1;
     int curDim;
@@ -71,6 +78,7 @@ void my_MPI_Broadcast_Max(double vector[VECSIZE], int size, int numDim, int rank
     int notParticipating = pow(2, numDim - 1) - 1;
     int bitmask = pow(2, numDim - 1);
     int curDim;
+    double receivedArray[VECSIZE];
     
     for(curDim = 0; curDim < numDim; curDim++) {
         if ((rank & notParticipating) == 0) {
@@ -79,8 +87,12 @@ void my_MPI_Broadcast_Max(double vector[VECSIZE], int size, int numDim, int rank
                 MPI_Send(vector, VECSIZE, MPI_DOUBLE, msgDestination, 0, MPI_COMM_WORLD);
             } else {
                 int msgSource = rank ^ bitmask;
-                double receivedArray[VECSIZE];
                 MPI_Recv(receivedArray, VECSIZE, MPI_DOUBLE, msgSource, 0, MPI_COMM_WORLD, &status);
+                
+                int i;
+                for (i = 0; i < VECSIZE; i++) {
+                    vector[i] = receivedArray[i];
+                }
             }
         }
         
@@ -91,7 +103,7 @@ void my_MPI_Broadcast_Max(double vector[VECSIZE], int size, int numDim, int rank
 
 int main(int argc, char *argv[])
 {
-    int nproc, j, i;
+    int nproc, j, i, iter;
     int myRank, root = 0;
     char hostName[255];
     
@@ -112,13 +124,24 @@ int main(int argc, char *argv[])
     for (i = 0; i < ITERATIONS; i++) {
         for (j = 0; j < VECSIZE; j++) {
             vector[j] = rand();
+            fprintf(stderr, "%i: vector[%i] = %f\n", myRank, j, vector[j]);
         }
         
         // Reduce the vector the root node using the hypercube.
         my_MPI_Reduce_Max(vector, VECSIZE, numDim, myRank, status, hostName);
         
+        if (myRank == root) {
+            for (iter = 0; iter < VECSIZE; iter++) {
+                fprintf(stderr, "root vector[%d] = %f\n", iter, vector[iter]);
+            }
+        }
+        
         // Now broadcast this max vector to everyone else.
         my_MPI_Broadcast_Max(vector, VECSIZE, numDim, myRank, status);
+        
+        for (iter = 0; iter < VECSIZE; iter++) {
+            fprintf(stderr, "final proc %d [%d] = %f\n", myRank, iter, vector[iter]);
+        }
     }
     
     MPI_Finalize();
