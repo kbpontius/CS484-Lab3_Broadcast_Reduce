@@ -103,7 +103,7 @@ void my_MPI_Broadcast_Max(double vector[VECSIZE], int size, int numDim, int rank
 
 int main(int argc, char *argv[])
 {
-    int nproc, j, i, iter;
+    int nproc, j, iter;
     int myRank, root = 0;
     char hostName[255];
     
@@ -124,7 +124,7 @@ int main(int argc, char *argv[])
     
     for (j = 0; j < VECSIZE; j++) {
         vector[j] = rand();
-        fprintf(stderr, "%i: vector[%i] = %f\n", myRank, j, vector[j]);
+//        fprintf(stderr, "%i: vector[%i] = %f\n", myRank, j, vector[j]);
     }
     
     // Reduce the vector the root node using the hypercube.
@@ -132,7 +132,7 @@ int main(int argc, char *argv[])
     
     if (myRank == root) {
         for (iter = 0; iter < VECSIZE; iter++) {
-            fprintf(stderr, "root vector[%d] = %f\n", iter, vector[iter]);
+//            fprintf(stderr, "root vector[%d] = %f\n", iter, vector[iter]);
         }
     }
     
@@ -140,7 +140,7 @@ int main(int argc, char *argv[])
     my_MPI_Broadcast_Max(vector, VECSIZE, numDim, myRank, status);
     
     for (iter = 0; iter < VECSIZE; iter++) {
-        fprintf(stderr, "final proc %d [%d] = %f\n", myRank, iter, vector[iter]);
+//        fprintf(stderr, "final proc %d [%d] = %f\n", myRank, iter, vector[iter]);
     }
     
     double endMaxVector = When();
@@ -150,13 +150,14 @@ int main(int argc, char *argv[])
     double startBandwidth = 0.0, endBandwidth = 0.0;
     
     if (myRank == root || myRank == 1) {
+        
         startBandwidth = When();
         
         for (iter = 0; iter < ITERATIONS; iter++) {
             if (myRank == root) {
                 MPI_Send(vector, 1, MPI_DOUBLE, 1, 0, MPI_COMM_WORLD);
             } else if (myRank == 1) {
-                MPI_Recv(vector, 1, MPI_DOUBLE, 0, 0, MPI_COMM_WORLD, &status);
+                MPI_Recv(vector, 1, MPI_DOUBLE, root, 0, MPI_COMM_WORLD, &status);
             }
         }
         
@@ -167,9 +168,14 @@ int main(int argc, char *argv[])
     
     
     if (myRank == root) {
-        double bytesPerSecond = (sizeof(double) * VECSIZE) * ITERATIONS / (endBandwidth - startBandwidth);
+        /*
+            This calculation is the size of a double in memory, multiplied by the # of 
+            iterations, divided by the bandwidthTime. This is because passing an array
+        */
+        double bandwidthTime = endBandwidth - startBandwidth;
+        double bytesPerSecond = sizeof(double) * ITERATIONS / bandwidthTime;
         fprintf(stderr, "Time %f\n", endMaxVector - startMaxVector);
-        fprintf(stderr, "MAX BANDWIDTH: %f bytes/second", bytesPerSecond);
+        fprintf(stderr, "MAX BANDWIDTH: %f bytes/second\n", bytesPerSecond);
     }
     
     return 0;
