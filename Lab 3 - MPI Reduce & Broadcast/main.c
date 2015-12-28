@@ -130,18 +130,20 @@ int main(int argc, char *argv[])
     // Reduce the vector the root node using the hypercube.
     my_MPI_Reduce_Max(vector, VECSIZE, numDim, myRank, status, hostName);
     
-    if (myRank == root) {
-        for (iter = 0; iter < VECSIZE; iter++) {
+    // Uncomment for error checking.
+//    if (myRank == root) {
+//        for (iter = 0; iter < VECSIZE; iter++) {
 //            fprintf(stderr, "root vector[%d] = %f\n", iter, vector[iter]);
-        }
-    }
+//        }
+//    }
     
     // Now broadcast this max vector to everyone else.
     my_MPI_Broadcast_Max(vector, VECSIZE, numDim, myRank, status);
     
-    for (iter = 0; iter < VECSIZE; iter++) {
+    // Uncomment for error checking.
+//    for (iter = 0; iter < VECSIZE; iter++) {
 //        fprintf(stderr, "final proc %d [%d] = %f\n", myRank, iter, vector[iter]);
-    }
+//    }
     
     double endMaxVector = When();
     
