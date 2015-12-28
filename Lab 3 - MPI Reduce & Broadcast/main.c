@@ -168,10 +168,6 @@ int main(int argc, char *argv[])
     
     
     if (myRank == root) {
-        /*
-            This calculation is the size of a double in memory, multiplied by the # of 
-            iterations, divided by the bandwidthTime. This is because passing an array
-        */
         double bandwidthTime = endBandwidth - startBandwidth;
         double bytesPerSecond = sizeof(double) * ITERATIONS / bandwidthTime;
         fprintf(stderr, "Time %f\n", endMaxVector - startMaxVector);
